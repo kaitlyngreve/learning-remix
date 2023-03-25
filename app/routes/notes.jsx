@@ -23,17 +23,20 @@ export async function loader() {
 export async function action({ request }) {
   const formData = await request.formData();
   const noteData = Object.fromEntries(formData);
-  // OR - this does the same thing
-  // const noteData = {
-  //   title: formData.get("title"),
-  //   content: formData.get("content"),
-  // };
+
+  if (noteData.title.trim().length < 5) {
+    return { message: "title must be longer" };
+  }
 
   const existingNotes = await getStoredNotes();
   noteData.id = new Date().toISOString();
 
   const updatedNotes = existingNotes.concat(noteData);
   await storeNotes(updatedNotes);
+
+  // if you want a pause in submitting
+  // await new Promise((resolve, reject) => setTimeout(() => resolve(), 2000));
+  return redirect("/notes");
 }
 
 export function links() {
