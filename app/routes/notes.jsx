@@ -1,16 +1,25 @@
-import { redirect } from "react-router";
+import { redirect, useLoaderData } from "react-router";
+
 import NewNote, { links as newNoteLinks } from "~/components/NewNote";
 import { getStoredNotes, storeNotes } from "~/data/notes";
+import NoteList, { links as noteListLinks } from "~/components/NoteList";
 
 export default function NotesPage() {
+  const notes = useLoaderData();
+
   return (
     <main>
       <NewNote />
+      <NoteList notes={notes} />
     </main>
   );
 }
 
-// the 'request' paramter is just data.request destructured
+export async function loader() {
+  const notes = await getStoredNotes();
+  return notes;
+}
+
 export async function action({ request }) {
   const formData = await request.formData();
   const noteData = Object.fromEntries(formData);
@@ -25,10 +34,8 @@ export async function action({ request }) {
 
   const updatedNotes = existingNotes.concat(noteData);
   await storeNotes(updatedNotes);
-
-  return redirect("/notes");
 }
 
 export function links() {
-  return [...newNoteLinks()];
+  return [...newNoteLinks(), ...noteListLinks()];
 }
